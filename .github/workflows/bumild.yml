@@ -1,0 +1,35 @@
+name: Build Novaria OS ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preuzmi projekt
+        uses: actions/checkout@v4
+
+      - name: Instaliraj live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build debootstrap
+
+      - name: Provjeri build alat
+        run: |
+          test -f Build.sh || { echo "Build.sh nije u rootu repozitorija. Stavi cijeli sadržaj projekta u root."; exit 1; }
+          command -v lb
+          lb --version
+
+      - name: Izradi ISO
+        run: bash ./Build.sh
+
+      - name: Sačuvaj ISO kao artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: novariaos-live-iso
+          path: '*.iso'
+          if-no-files-found: error
+          retention-days: 7
